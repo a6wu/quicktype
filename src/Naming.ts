@@ -87,8 +87,12 @@ export type NameStyle = (rawName: string) => string;
 export class Namer {
     private readonly _prefixes: OrderedSet<string>;
 
-    constructor(readonly nameStyle: NameStyle, prefixes: string[]) {
+    constructor(private readonly _nameStyle: NameStyle, prefixes: string[]) {
         this._prefixes = OrderedSet(prefixes);
+    }
+
+    proposeName(original: string) {
+        return this._nameStyle(original);
     }
 
     name(
@@ -114,7 +118,7 @@ export class Namer {
                 namesToAssign.every(n => n === name || !n.proposeUnstyledNames(names).contains(proposed))
             );
             if (maybeUniqueName !== undefined) {
-                const styledName = this.nameStyle(maybeUniqueName);
+                const styledName = this.proposeName(maybeUniqueName);
                 const assigned = name.nameAssignments(forbiddenNames, styledName);
                 if (assigned) {
                     allAssignedNames = allAssignedNames.merge(assigned);
@@ -143,7 +147,7 @@ export class Namer {
                 nameToTry = `${originalName}_${suffixNumber.toString()}`;
                 suffixNumber++;
             }
-            const styledName = this.nameStyle(nameToTry);
+            const styledName = this.proposeName(nameToTry);
             const assigned = name.nameAssignments(forbiddenNames, styledName);
             if (assigned === null) continue;
             allAssignedNames = allAssignedNames.merge(assigned);
@@ -158,7 +162,7 @@ export class Namer {
         if (!(other instanceof Namer)) {
             return false;
         }
-        return this.nameStyle === other.nameStyle && other._prefixes.equals(this._prefixes);
+        return this._nameStyle === other._nameStyle && other._prefixes.equals(this._prefixes);
     }
 
     hashCode(): number {
@@ -429,7 +433,7 @@ export function assignNames(rootNamespaces: OrderedSet<Namespace>): Map<Name, st
         const byNamingFunction = readyNames.groupBy((n: Name) => nonNull(n.namingFunction));
         byNamingFunction.forEach((namedsForNamingFunction: Collection<any, Name>, namer: Namer) => {
             const byProposed = namedsForNamingFunction.groupBy((n: Name) =>
-                namer.nameStyle(n.firstProposedName(ctx.names))
+                namer.proposeName(n.firstProposedName(ctx.names))
             );
             byProposed.forEach((nameds: Collection<any, Name>, _: string) => {
                 // 3. Use each set's naming function to name its members.

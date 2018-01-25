@@ -167,7 +167,7 @@ export abstract class ConvenienceRenderer extends Renderer {
         const maybeNamedType = this.namedTypeToNameForTopLevel(type);
         let styledName: string;
         if (maybeNamedType !== undefined) {
-            styledName = this._namedTypeNamer.nameStyle(name);
+            styledName = this._namedTypeNamer.proposeName(name);
         } else {
             styledName = this.topLevelNameStyle(name);
         }
