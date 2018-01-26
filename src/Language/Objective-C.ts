@@ -4,7 +4,17 @@ import * as lo from "lodash";
 import { includes, startsWith, repeat } from "lodash";
 
 import { TargetLanguage } from "../TargetLanguage";
-import { Type, ClassType, EnumType, nullableFromUnion, matchType, ArrayType, MapType, UnionType } from "../Type";
+import {
+    Type,
+    ClassType,
+    EnumType,
+    nullableFromUnion,
+    matchType,
+    ArrayType,
+    MapType,
+    UnionType,
+    ClassProperty
+} from "../Type";
 import { TypeGraph } from "../TypeGraph";
 import { Name, Namer, funPrefixNamer } from "../Naming";
 import { Sourcelike, modifySource } from "../Source";
@@ -253,9 +263,10 @@ class ObjectiveCRenderer extends ConvenienceRenderer {
         return funPrefixNamer("types", rawName => typeNameStyle(this._classPrefix, rawName));
     }
 
-    protected namerForClassProperty(): Namer {
+    protected namerForClassProperty(_: ClassType, p: ClassProperty): Namer {
+        const prefix = p.type.kind === "bool" ? "is_" : "";
         // TODO why is underscore being removed?
-        return new Namer("properties", s => propertyNameStyle(s), ["_", "the", "one", "some", "another"]);
+        return new Namer("properties", s => propertyNameStyle(prefix + s), ["_", "the", "one", "some", "another"]);
     }
 
     protected makeUnionMemberNamer(): null {
